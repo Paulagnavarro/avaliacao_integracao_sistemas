@@ -13,16 +13,28 @@ export class MessageService {
     private readonly recordService: RecordService
   ) {}
 
-  // cria uma nova mensagem no banco de dados
   async sendMessage(userIdSend: string, userIdReceive: string, message: string) {
     await this.messageModel.create({ userIdSend, userIdReceive, message });
   }
 
-  // processa as mensagens obtidas de uma fila específica e as salva no banco de dados
   async processMessagesFromQueue(queue: string) {
     const messages = await this.queueService.getMessagesFromQueue(queue);
     for (const message of messages) {
-      await this.recordService.saveMessage(message);
+      const messageData = {
+        message: message, 
+        userIdSend: '', 
+        userIdReceive: '' 
+      };
+      await this.recordService.saveMessage(messageData);
     }
+  }
+
+  async processMessages(userIdSend: string, userIdReceive: string, message: string) {
+    const messageData = {
+      message: message,
+      userIdSend: userIdSend,
+      userIdReceive: userIdReceive,
+    };
+    await this.recordService.saveMessage(messageData);
   }
 }
